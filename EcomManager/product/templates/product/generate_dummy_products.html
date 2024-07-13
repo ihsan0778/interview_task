@@ -1,0 +1,13 @@
+<!-- product/templates/product/generate_dummy_products.html -->
+<html>
+  <head>
+    <title>Generate Dummy Products</title>
+  </head>
+  <body>
+    <h1>Generate Dummy Products</h1>
+    <form method="post">
+      {% csrf_token %} {{ form.as_p }}
+      <button type="submit">Generate Products</button>
+    </form>
+  </body>
+</html>
