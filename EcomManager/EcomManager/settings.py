@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'user_app',
 ]
 
 MIDDLEWARE = [
@@ -110,6 +111,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+AUTH_USER_MODEL = "user_app.CustomUser" 
+LOGIN_URL = '/accounts/login/'  # Adjust this if your login URL differs
 
 
 # Static files (CSS, JavaScript, Images)
@@ -121,3 +124,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Set up email configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com' 
+EMAIL_PORT = 587  
+EMAIL_USE_TLS = True  
+EMAIL_HOST_USER = 'diyabu07@gmail.com'  
+EMAIL_HOST_PASSWORD = 'owbt bsft yicx mcof'  
+DEFAULT_FROM_EMAIL = 'diyabu07@gmail.com' 
