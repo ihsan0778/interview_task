@@ -1,0 +1,15 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product List</title>
+  </head>
+  <body>
+    <h2>Product List</h2>
+    <ul>
+      {% for product in products %}
+      <li>{{ product.title }} - {{ product.price }}</li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
