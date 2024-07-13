@@ -10,6 +10,11 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils.encoding import force_bytes
+from django.contrib.auth import login as auth_login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.views import LoginView as BaseLoginView
+from django.http import JsonResponse
+from rest_framework_simplejwt.tokens import RefreshToken
 
 User = get_user_model()
 
@@ -54,8 +59,6 @@ def activate(request, uidb64, token):
             # Activate user account
             user.is_active = True
             user.save()
-            import pdb
-            pdb.set_trace()
             messages.success(request, 'Your account has been activated. You can now log in.')
         else:
             messages.error(request, 'Activation link is invalid.')
@@ -64,3 +67,34 @@ def activate(request, uidb64, token):
         messages.error(request, 'Activation link is invalid.')
     
     return redirect('login')  # Redirect to login page after activation
+
+
+class CustomLoginView(BaseLoginView):
+    """
+    Custom login view to return JWT token along with user info.
+    """
+    def form_valid(self, form):
+        # Log the user in
+        auth_login(self.request, form.get_user())
+
+        # Generate JWT token
+        user = self.request.user
+        refresh = RefreshToken.for_user(user)
+
+        # Customize data to return (add more as needed)
+        data = {
+            'token': str(refresh.access_token),
+            'user': {
+                'id': user.id,
+                'email': user.email,
+                'username': user.username,
+                'role': user.role,
+                # Add more user data fields as needed
+            }
+        }
+        
+        return JsonResponse(data)
+
+    def form_invalid(self, form):
+        # Handle invalid login attempt
+        return JsonResponse({'error': 'Invalid credentials'}, status=400)
