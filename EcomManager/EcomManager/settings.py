@@ -14,7 +14,15 @@ from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
 
+# Load environmental variables from .env file
+load_dotenv()
+import os
+
+# Use the loaded environmental variables
+AES_ENCRYPTION_KEY = os.getenv('AES_ENCRYPTION_KEY', 'default_key_for_local_development')
+print(AES_ENCRYPTION_KEY)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/

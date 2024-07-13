@@ -6,6 +6,7 @@ from .models import Product, Category
 from .permissions import IsAdminOrReadOnly, IsStaffOrReadOnly, IsAgentOrReadOnly
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from utils.utility import encrypt_data, decrypt_data
 
 class ProductListView(LoginRequiredMixin, ListView):
     model = Product
@@ -19,11 +20,23 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     template_name = 'product/product_form.html'
     fields = ['category', 'title', 'description', 'price']
     success_url = reverse_lazy('product-list')
+ #Added for data encripting but key error occurs
+    # def form_valid(self, form):
+    #     # Encrypt specific fields before saving
+    #     encrypted_title = encrypt_data(form.cleaned_data['title'])
+    #     encrypted_description = encrypt_data(form.cleaned_data['description'])
 
+    #     # Replace form data with encrypted values
+    #     form.instance.title = encrypted_title['ciphertext']
+    #     form.instance.description = encrypted_description['ciphertext']
+
+    #     # Set the uploaded_by field to the current user
+    #     form.instance.uploaded_by = self.request.user
+
+    #     return super().form_valid(form)
     def form_valid(self, form):
         form.instance.uploaded_by = self.request.user 
         return super().form_valid(form)
-
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Product
     template_name = 'product_form.html'
