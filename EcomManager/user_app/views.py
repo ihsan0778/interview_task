@@ -11,40 +11,42 @@ from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.utils.encoding import force_bytes
 from django.contrib.auth import login as auth_login
-from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
-
+from .forms import CustomUserCreationForm
+from django.views.generic import FormView
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 User = get_user_model()
 
+@method_decorator(csrf_exempt, name='dispatch')
+class SignUpView(FormView):
+    template_name = 'user_app/signup.html'
+    form_class = CustomUserCreationForm
 
-def signup(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            user.is_active = False
-            user.save()
-            uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
-           
-            # Send email verification
-            current_site = get_current_site(request)
-            mail_subject = 'Activate your account'
-            message = render_to_string('user_app/activation_email.html', {
-                'user': user,
-                'domain': current_site.domain,
-                'token': default_token_generator.make_token(user),
-                'uid': urlsafe_base64_encode(force_bytes(user.pk))
-            })
-            to_email = form.cleaned_data.get('email') 
-            email = EmailMessage(mail_subject, message, to=[to_email])
-            email.send()
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_active = False
+        user.save()
 
-            return redirect('account_activation_sent')
-    else:
-        form = CustomUserCreationForm()
-    return render(request, 'user_app/signup.html', {'form': form})
+        # Send email verification
+        current_site = get_current_site(self.request)
+        mail_subject = 'Activate your account'
+        message = render_to_string('user_app/activation_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'token': default_token_generator.make_token(user),
+            'uid': urlsafe_base64_encode(force_bytes(user.pk))
+        })
+        to_email = form.cleaned_data.get('email')
+        email = EmailMessage(mail_subject, message, to=[to_email])
+        email.send()
+
+        return redirect('account_activation_sent')
+
+    def get_success_url(self):
+        return redirect('account_activation_sent')
 
 def account_activation_sent(request):
     return render(request, 'user_app/account_activation_sent.html')
@@ -68,7 +70,7 @@ def activate(request, uidb64, token):
     
     return redirect('login')  # Redirect to login page after activation
 
-
+@method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(BaseLoginView):
     """
     Custom login view to return JWT token along with user info.
