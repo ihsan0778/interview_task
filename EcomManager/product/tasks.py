@@ -4,6 +4,11 @@ from .models import Category, Product
 from django.contrib.auth import get_user_model
 User = get_user_model()
 import random
+import os
+from datetime import datetime
+from django.conf import settings
+import time
+
 
 @shared_task
 def generate_dummy_data(num_categories, num_products):
@@ -23,3 +28,14 @@ def generate_dummy_data(num_categories, num_products):
             status='draft',
             created_by=User.objects.first()  # Set to any user
         )
+
+@shared_task(bind=True)
+def process_video(self, product_id, video_name, video_size):
+    # Simulate video processing (replace with actual processing logic)
+    total_chunks = video_size // (1024 * 1024)  # Total chunks in MB
+    for chunk in range(total_chunks):
+        time.sleep(1)  # Simulate processing time for each chunk (1 second per MB)
+        self.update_state(state='PROGRESS',
+                          meta={'current': chunk + 1, 'total': total_chunks, 'percent': (chunk + 1) * 100 / total_chunks})
+
+    return f"Processed video: {video_name}"

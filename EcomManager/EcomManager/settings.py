@@ -157,7 +157,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  
 EMAIL_USE_TLS = True  
 EMAIL_HOST_USER = 'diyabu07@gmail.com'  
-EMAIL_HOST_PASSWORD = 'wusp dlzk aqqp vwad'  
+EMAIL_HOST_PASSWORD = 'wdddp dlczk aqqsp vwad'  
 DEFAULT_FROM_EMAIL = 'diyabu07@gmail.com' 
 
 # Celery settings
