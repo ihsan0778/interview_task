@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Product Export</title>
+  </head>
+  <body>
+    <h2>Export Products</h2>
+    <a href="{% url 'export-products' %}?format=csv">Export as CSV</a><br />
+    <a href="{% url 'export-products' %}?format=excel">Export as Excel</a><br />
+  </body>
+</html>

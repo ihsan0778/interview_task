@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Generate Dummy Products</title>
+    <title>Approve/Reject Product</title>
   </head>
   <body>
-    <h1>Generate Dummy Products</h1>
+    <h2>Approve/Reject Product</h2>
     <form method="post">
       {% csrf_token %} {{ form.as_p }}
-      <button type="submit">Generate Products</button>
+      <button type="submit">Submit</button>
     </form>
   </body>
 </html>

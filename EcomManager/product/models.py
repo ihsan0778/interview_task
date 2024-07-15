@@ -27,7 +27,7 @@ class Product(models.Model):
     status = models.CharField(max_length=10, choices=status_choices, default='draft')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
     class Meta:
         ordering = ('-created_at',)

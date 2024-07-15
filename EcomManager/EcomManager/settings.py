@@ -79,6 +79,13 @@ TEMPLATES = [
     },
 ]
 REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+        'product.permissions.IsAdminPermission',
+        'product.permissions.IsStaffPermission',
+        'product.permissions.IsAgentPermission',
+        # Add other permissions as needed
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         # other authentication classes
@@ -150,5 +157,18 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  
 EMAIL_USE_TLS = True  
 EMAIL_HOST_USER = 'diyabu07@gmail.com'  
-EMAIL_HOST_PASSWORD = 'owbt bsft yicx mcof'  
+EMAIL_HOST_PASSWORD = 'wusp dlzk aqqp vwad'  
 DEFAULT_FROM_EMAIL = 'diyabu07@gmail.com' 
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    # Add custom authentication backends if any
+]
