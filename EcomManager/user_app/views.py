@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from .forms import CustomUserCreationForm
 from django.contrib.auth.models import User
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
@@ -15,13 +15,23 @@ from django.contrib.auth.views import LoginView as BaseLoginView
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
 from .forms import CustomUserCreationForm
-from django.views.generic import FormView
+from django.views.generic import FormView, TemplateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
+from django.urls import reverse_lazy
+from django.views import View
+
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SignUpView(FormView):
+    """
+    SignUpView:
+    Handles user registration with email verification.
+    - Renders 'signup.html' template.
+    - Uses CustomUserCreationForm for user creation.
+    - Sends activation email with a verification link.
+    """       
     template_name = 'user_app/signup.html'
     form_class = CustomUserCreationForm
 
@@ -48,27 +58,42 @@ class SignUpView(FormView):
     def get_success_url(self):
         return redirect('account_activation_sent')
 
-def account_activation_sent(request):
-    return render(request, 'user_app/account_activation_sent.html')
-def activate(request, uidb64, token):
-    try:
-        # Decode uidb64 to user id
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = User.objects.get(pk=uid)
 
-        # Check if token is valid for the user
-        if default_token_generator.check_token(user, token):
-            # Activate user account
-            user.is_active = True
-            user.save()
-            messages.success(request, 'Your account has been activated. You can now log in.')
-        else:
-            messages.error(request, 'Activation link is invalid.')
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
-        user = None
-        messages.error(request, 'Activation link is invalid.')
+class AccountActivationSentView(TemplateView):
+    """
+    AccountActivationSentView:
+    Renders a confirmation message after activation email is sent.
+    """
+    template_name = 'user_app/account_activation_sent.html'
+
     
-    return redirect('login')  # Redirect to login page after activation
+class ActivateAccountView(View):
+    """
+    View for activating user account via email verification link.
+    """
+
+    def get(self, request, uidb64, token):
+        """
+        Handles GET request to activate user account.
+        """
+        try:
+            # Decode uidb64 to user id
+            uid = urlsafe_base64_decode(uidb64).decode()
+            user = get_object_or_404(User, pk=uid)
+
+            # Check if token is valid for the user
+            if default_token_generator.check_token(user, token):
+                # Activate user account
+                user.is_active = True
+                user.save()
+                messages.success(request, 'Your account has been activated. You can now log in.')
+            else:
+                messages.error(request, 'Activation link is invalid.')
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            messages.error(request, 'Activation link is invalid.')
+
+        return redirect(reverse_lazy('login'))  # Redirect to login page after activation
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(BaseLoginView):
@@ -83,7 +108,6 @@ class CustomLoginView(BaseLoginView):
         user = self.request.user
         refresh = RefreshToken.for_user(user)
 
-        # Customize data to return (add more as needed)
         data = {
             'token': str(refresh.access_token),
             'user': {
