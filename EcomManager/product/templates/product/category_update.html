@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Update Category</title>
+  </head>
+  <body>
+    <h1>Update Category</h1>
+
+    <form method="post" action="{% url 'category_list' %}">
+      {% csrf_token %} {{ form.as_p }}
+      <input type="hidden" name="action" value="update" />
+      <input type="hidden" name="category_id" value="{{ category.id }}" />
+      <button type="submit">Update Category</button>
+    </form>
+  </body>
+</html>

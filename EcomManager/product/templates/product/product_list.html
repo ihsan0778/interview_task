@@ -1,15 +1,334 @@
-{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Product List</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      h1 {
+        text-align: center;
+      }
+      .container {
+        width: 80%;
+        margin: 0 auto;
+      }
+      .add-product-btn {
+        display: block;
+        width: 200px;
+        margin: 20px auto;
+        padding: 10px;
+        background-color: #007bff;
+        color: white;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .add-product-btn:hover {
+        background-color: #0056b3;
+      }
+      .products-container ul {
+        list-style: none;
+        padding: 0;
+      }
+      .products-container ul li {
+        border: 1px solid #ddd;
+        padding: 10px;
+        border-radius: 5px;
+        margin: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .products-container ul li form {
+        margin: 0;
+      }
+      .products-container ul li form button {
+        padding: 5px 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin-left: 5px;
+      }
+      .products-container ul li form button.update {
+        background-color: #ffc107;
+        color: white;
+      }
+      .products-container ul li form button.update:hover {
+        background-color: #e0a800;
+      }
+      .products-container ul li form button.delete {
+        background-color: #dc3545;
+        color: white;
+      }
+      .products-container ul li form button.delete:hover {
+        background-color: #c82333;
+      }
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.4);
+        padding-top: 60px;
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        border-radius: 10px;
+      }
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .close:hover,
+      .close:focus {
+        color: black;
+        text-decoration: none;
+      }
+      .progress {
+        display: none;
+        margin-top: 10px;
+      }
+      .progress-bar {
+        width: 0%;
+        height: 20px;
+        background-color: #007bff;
+        text-align: center;
+        line-height: 20px;
+        color: white;
+        border-radius: 5px;
+      }
+    </style>
   </head>
   <body>
-    <h2>Product List</h2>
-    <ul>
-      {% for product in products %}
-      <li>{{ product.title }} - {{ product.price }}</li>
-      {% endfor %}
-    </ul>
+    <h1>Product List</h1>
+
+    <div class="container">
+      <!-- Button to open the modal -->
+      <button
+        class="add-product-btn"
+        onclick="document.getElementById('addProductModal').style.display='block'"
+      >
+        Add Product
+      </button>
+
+      <!-- The Modal for Adding Product -->
+      <div id="addProductModal" class="modal">
+        <div class="modal-content">
+          <span
+            class="close"
+            onclick="document.getElementById('addProductModal').style.display='none'"
+            >&times;</span
+          >
+          <h2>Add Product</h2>
+          <form id="addProductForm" method="post" enctype="multipart/form-data">
+            {% csrf_token %} {{ form.as_p }}
+            <input type="hidden" name="action" value="add" />
+            <button type="submit">Add Product</button>
+          </form>
+          <div class="progress">
+            <div id="progressBar" class="progress-bar">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="products-container">
+        <!-- List of existing products -->
+        <ul>
+          {% for product in products %}
+          <li>
+            <div>
+              <strong>{{ product.title }}</strong> - ${{ product.price }}
+            </div>
+            <div>
+              <!-- Update form button -->
+              <form method="post" style="display: inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update" />
+                <input
+                  type="hidden"
+                  name="product_id"
+                  value="{{ product.id }}"
+                />
+                <button type="submit" class="update">Update</button>
+              </form>
+              <!-- Delete form button -->
+              <form
+                method="post"
+                style="display: inline-block"
+                onsubmit="return confirm('Are you sure you want to delete {{ product.title }}?');"
+              >
+                {% csrf_token %}
+                <input type="hidden" name="action" value="delete" />
+                <input
+                  type="hidden"
+                  name="product_id"
+                  value="{{ product.id }}"
+                />
+                <button type="submit" class="delete">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- The Modal for Updating Product -->
+      <div id="updateProductModal" class="modal">
+        <div class="modal-content">
+          <span
+            class="close"
+            onclick="document.getElementById('updateProductModal').style.display='none'"
+            >&times;</span
+          >
+          <h2>Update Product</h2>
+          <form method="post">
+            {% csrf_token %} {{ form.as_p }}
+            <input type="hidden" name="action" value="update" />
+            <input type="hidden" name="product_id" id="updateProductId" />
+            <button type="submit">Update Product</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- The Modal for Deleting Product -->
+      <div id="deleteProductModal" class="modal">
+        <div class="modal-content">
+          <span
+            class="close"
+            onclick="document.getElementById('deleteProductModal').style.display='none'"
+            >&times;</span
+          >
+          <h2>Delete Product</h2>
+          <p>
+            Are you sure you want to delete
+            <strong id="deleteProductTitle"></strong>?
+          </p>
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete" />
+            <input type="hidden" name="product_id" id="deleteProductId" />
+            <button type="submit">Delete Product</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("addProductForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          var form = event.target;
+          var formData = new FormData(form);
+          var progressBar = document.getElementById("progressBar");
+          var progressDiv = document.querySelector(".progress");
+
+          // Show progress bar if a video file is present
+          var videoFile = formData.get("video");
+          if (videoFile && videoFile.size > 0) {
+            progressDiv.style.display = "block";
+          } else {
+            form.submit(); // If no file, submit the form normally
+            return;
+          }
+
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", form.action, true);
+
+          xhr.upload.addEventListener("progress", function (e) {
+            if (e.lengthComputable) {
+              var percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + "%";
+              progressBar.textContent = Math.round(percentComplete) + "%";
+            }
+          });
+
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4 && xhr.status == 200) {
+              // Handle success
+              document.getElementById("addProductModal").style.display = "none";
+              progressBar.style.width = "0%";
+              progressBar.textContent = "0%";
+              progressDiv.style.display = "none";
+              // Refresh the page or dynamically update the product list
+              location.reload();
+            }
+          };
+
+          xhr.send(formData);
+        });
+      document
+        .getElementById("addProductForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          var form = event.target;
+          var formData = new FormData(form);
+          var progressBar = document.getElementById("progressBar");
+          var progressDiv = document.querySelector(".progress");
+
+          // Show progress bar if a video file is present
+          var videoFile = formData.get("video");
+          if (videoFile && videoFile.size > 0) {
+            progressDiv.style.display = "block";
+          } else {
+            form.submit();
+            return;
+          }
+
+          var xhr = new XMLHttpRequest();
+          xhr.open("POST", "/prod/", true); // Correct URL for your Django view
+          xhr.setRequestHeader(
+            "X-CSRFToken",
+            formData.get("csrfmiddlewaretoken")
+          ); // Ensure CSRF token is set
+
+          xhr.upload.addEventListener("progress", function (e) {
+            if (e.lengthComputable) {
+              var percentComplete = (e.loaded / e.total) * 100;
+              progressBar.style.width = percentComplete + "%";
+              progressBar.textContent = Math.round(percentComplete) + "%";
+            }
+          });
+
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+              if (xhr.status == 200) {
+                // Handle success
+                document.getElementById("addProductModal").style.display =
+                  "none";
+                progressBar.style.width = "0%";
+                progressBar.textContent = "0%";
+                progressDiv.style.display = "none";
+                // Optionally, refresh the page or update the product list dynamically
+                // location.reload();
+              } else {
+                // Handle errors
+                console.error("Error adding product:", xhr.status);
+                // You can handle errors here, display a message to the user, etc.
+              }
+            }
+          };
+
+          xhr.send(formData);
+        });
+    </script>
   </body>
 </html>

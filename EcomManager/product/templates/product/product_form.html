@@ -1,35 +1,10 @@
-<form id="product-form" method="post" enctype="multipart/form-data">
+{% comment %}
+<!-- product_form.html -->
+{% extends "base_generic.html" %} {% block title %}Create Product{% endblock %}
+{% block content %}
+<h2>Create Product</h2>
+<form method="post" enctype="multipart/form-data">
   {% csrf_token %} {{ form.as_p }}
-  <input type="submit" value="Submit" />
+  <button type="submit">Create</button>
 </form>
-
-<div id="progress-bar" style="width: 100%; background-color: #ddd">
-  <div
-    id="progress"
-    style="height: 20px; width: 0%; background-color: #4caf50"
-  ></div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script>
-  document.getElementById('product-form').addEventListener('submit', function(event) {
-    event.preventDefault();
-    var formData = new FormData(this);
-
-    axios.post('{% url 'product-create' %}', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      },
-      onUploadProgress: function(progressEvent) {
-        var percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-        document.getElementById('progress').style.width = percentCompleted + '%';
-      }
-    }).then(function(response) {
-      console.log(response.data);
-      // Handle success response
-    }).catch(function(error) {
-      console.error(error);
-      // Handle error response
-    });
-  });
-</script>
+{% endblock %}

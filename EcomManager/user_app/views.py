@@ -14,50 +14,76 @@ from django.contrib.auth import login as auth_login
 from django.contrib.auth.views import LoginView as BaseLoginView
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
-from .forms import CustomUserCreationForm
-from django.views.generic import FormView, TemplateView
+from .forms import CustomUserCreationForm, CustomUserUpdateForm
+from django.views.generic import  TemplateView
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.views import View
+from django.http import HttpResponseBadRequest
 
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name='dispatch')
-class SignUpView(FormView):
-    """
-    SignUpView:
-    Handles user registration with email verification.
-    - Renders 'signup.html' template.
-    - Uses CustomUserCreationForm for user creation.
-    - Sends activation email with a verification link.
-    """       
-    template_name = 'user_app/signup.html'
+class UserListView(View):
+    template_name = 'user_app/user_list.html'
     form_class = CustomUserCreationForm
 
-    def form_valid(self, form):
-        user = form.save(commit=False)
-        user.is_active = False
-        user.save()
+    def get(self, request):
+        users = User.objects.all()
+        form = self.form_class()
+        return render(request, self.template_name, {'users': users, 'form': form})
 
-        # Send email verification
-        current_site = get_current_site(self.request)
-        mail_subject = 'Activate your account'
-        message = render_to_string('user_app/activation_email.html', {
-            'user': user,
-            'domain': current_site.domain,
-            'token': default_token_generator.make_token(user),
-            'uid': urlsafe_base64_encode(force_bytes(user.pk))
-        })
-        to_email = form.cleaned_data.get('email')
-        email = EmailMessage(mail_subject, message, to=[to_email])
-        email.send()
+    def post(self, request):
+        action = request.POST.get('action')
 
-        return redirect('account_activation_sent')
+        if action == 'add':
+            form = self.form_class(request.POST)
+            if form.is_valid():
+                user = form.save(commit=False)
+                user.is_active = False
+                user.save()
+
+                # Send email verification
+                current_site = get_current_site(request)
+                mail_subject = 'Activate your account'
+                message = render_to_string('user_app/activation_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'token': default_token_generator.make_token(user),
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk))
+                })
+                to_email = form.cleaned_data.get('email')
+                email = EmailMessage(mail_subject, message, to=[to_email])
+                email.send()
+
+                return redirect('account_activation_sent')
+            else:
+                users = User.objects.all()
+                return render(request, self.template_name, {'users': users, 'form': form})
+
+        elif action == 'update':
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, pk=user_id)
+            form = CustomUserUpdateForm(request.POST,instance=user)
+            if form.is_valid():
+                form.save()
+                user = User.objects.all()
+                return render(request, 'user_app/user_list.html', {'users': user, 'form': form})
+            else:
+                form=CustomUserUpdateForm(instance=user)
+                return render(request, 'user_app/user_update.html', {'form': form, 'user': user})
+
+        elif action == 'delete':
+            user_id = request.POST.get('user_id')
+            user = get_object_or_404(User, pk=user_id)
+            user.delete()
+            user = User.objects.all()
+            return redirect('user_list')
+        return HttpResponseBadRequest("Invalid action")
 
     def get_success_url(self):
-        return redirect('account_activation_sent')
-
+        return reverse_lazy('account_activation_sent')
 
 class AccountActivationSentView(TemplateView):
     """

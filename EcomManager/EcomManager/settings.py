@@ -20,9 +20,8 @@ from dotenv import load_dotenv
 load_dotenv()
 import os
 
-# Use the loaded environmental variables
-AES_ENCRYPTION_KEY = os.getenv('AES_ENCRYPTION_KEY', 'default_key_for_local_development')
-print(AES_ENCRYPTION_KEY)
+AES_KEY = b'\xc7\xbff\xa7\xa2\xcd\xe06\xbe\x83\x11\xd6a\xb2/\x9f'
+AES_IV = os.getenv('AES_IV')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
@@ -55,10 +54,12 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+    # 'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #Adding custom middleware for encription
+    # 'product.middlewares.EncryptionMiddleware'
 ]
 
 ROOT_URLCONF = 'EcomManager.urls'
@@ -66,7 +67,7 @@ ROOT_URLCONF = 'EcomManager.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -146,6 +147,9 @@ LOGIN_URL = '/accounts/login/'  # Adjust this if your login URL differs
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -157,7 +161,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587  
 EMAIL_USE_TLS = True  
 EMAIL_HOST_USER = 'diyabu07@gmail.com'  
-EMAIL_HOST_PASSWORD = 'wdddp dlczk aqqsp vwad'  
+EMAIL_HOST_PASSWORD = 'qdzk uoft bkcj htja'  
 DEFAULT_FROM_EMAIL = 'diyabu07@gmail.com' 
 
 # Celery settings

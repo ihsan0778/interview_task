@@ -1,16 +1,53 @@
-{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Activate Your Account</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 100px auto;
+        padding: 20px;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+      h2 {
+        color: #007bff;
+      }
+      p {
+        font-size: 18px;
+        line-height: 1.6;
+      }
+      a {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 4px;
+      }
+    </style>
   </head>
   <body>
-    <h2>Activate Your Account</h2>
-    <p>Hi {{ user.username }},</p>
-    <p>Please click the link below to activate your account:</p>
-    <a href="{{ domain }}{% url 'activate' uidb64=uid token=token %}">
-      >Activate your account</a
-    >
-    <p>Thank you for registering with us.</p>
+    <div class="container">
+      <h2>Activate Your Account</h2>
+      <p>Hi {{ user.username }},</p>
+      <p>Please click the link below to activate your account:</p>
+      <a href="{{ domain }}{% url 'activate' uidb64=uid token=token %}"
+        >Activate your account</a
+      >
+      <p>Thank you for registering with us.</p>
+    </div>
   </body>
 </html>
