@@ -1,218 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>User List</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      h1 {
-        text-align: center;
-      }
-      .container {
-        width: 80%;
-        margin: 0 auto;
-      }
-      .add-user-btn {
-        display: block;
-        width: 200px;
-        margin: 20px auto;
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .add-user-btn:hover {
-        background-color: #0056b3;
-      }
-      .users-container ul {
-        list-style: none;
-        padding: 0;
-      }
-      .users-container ul li {
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .users-container ul li form {
-        margin: 0;
-      }
-      .users-container ul li form button {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 5px;
-      }
-      .users-container ul li form button.update {
-        background-color: #ffc107;
-        color: white;
-      }
-      .users-container ul li form button.update:hover {
-        background-color: #e0a800;
-      }
-      .users-container ul li form button.delete {
-        background-color: #dc3545;
-        color: white;
-      }
-      .users-container ul li form button.delete:hover {
-        background-color: #c82333;
-      }
-      /* Modal styles */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgb(0, 0, 0);
-        background-color: rgba(0, 0, 0, 0.4);
-        padding-top: 60px;
-      }
-      .modal-content {
-        background-color: #fefefe;
-        margin: 5% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        border-radius: 10px;
-      }
-      .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-      }
-      .close:hover,
-      .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>User List</h1>
+<head>
+  <meta charset="UTF-8" />
+  <title>User List</title>
+  <!-- Add Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+    .add-user-btn {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .add-user-btn:hover {
+      background-color: #0056b3;
+    }
+    .users-container ul {
+      list-style: none;
+      padding: 0;
+    }
+    .users-container ul li {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .users-container ul li form {
+      margin: 0;
+    }
+    .users-container ul li form button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    .users-container ul li form button.update {
+      background-color: #ffc107;
+      color: white;
+    }
+    .users-container ul li form button.update:hover {
+      background-color: #e0a800;
+    }
+    .users-container ul li form button.delete {
+      background-color: #dc3545;
+      color: white;
+    }
+    .users-container ul li form button.delete:hover {
+      background-color: #c82333;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgb(0, 0, 0);
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      border-radius: 10px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    /* Logout button styles */
+    .logout-btn {
+      display: block;
+      width: 100px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #dc3545;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+    }
+    .logout-btn:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <h1>User List</h1>
 
-    <div class="container">
-      <!-- Button to open the modal -->
-      <button
-        class="add-user-btn"
-        onclick="document.getElementById('addUserModal').style.display='block'"
-      >
-        Add User
-      </button>
+  <div class="container">
+    <!-- Logout icon -->
+    <a href="#" class="logout-btn" onclick="logoutUser(); return false;">
+      <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
 
-      <!-- The Modal for Adding User -->
-      <div id="addUserModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('addUserModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Add User</h2>
-          <form method="post">
-            {% csrf_token %} {{ form.as_p }}
-            <input type="hidden" name="action" value="add" />
-            <button type="submit">Add User</button>
-          </form>
-        </div>
-      </div>
+    <!-- Button to open the modal -->
+    <button
+      class="add-user-btn"
+      onclick="document.getElementById('addUserModal').style.display='block'"
+    >
+      Add User
+    </button>
 
-      <div class="users-container">
-        <!-- List of existing users -->
-        <ul>
-          {% for user in users %}
-          <li>
-            {{ user.username }} - {{ user.email }}
-            <div>
-              <!-- Update form button -->
-              <form method="post" style="display: inline-block">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update" />
-                <input type="hidden" name="user_id" value="{{ user.id }}" />
-                <button type="submit" class="update">Update</button>
-              </form>
-
-              <!-- Delete form button -->
-              {% comment %}
-              <form
-                method="post"
-                style="display: inline-block"
-                onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?');"
-              >
-                {% csrf_token %}
-                <input type="hidden" name="user_id" value="{{ user.id }}" />
-                <button type="submit" class="delete">Delete</button>
-              </form>
-              {% endcomment %}
-              <form
-                method="post"
-                style="display: inline-block"
-                onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?');"
-              >
-                {% csrf_token %}
-                <input type="hidden" name="action" value="delete" />
-                <input type="hidden" name="user_id" value="{{ user.id }}" />
-                <button type="submit" class="delete">Delete</button>
-              </form>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <!-- The Modal for Updating User -->
-      <div id="updateUserModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('updateUserModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Update User</h2>
-          <form method="post">
-            {% csrf_token %} {{ form.as_p }}
-            <input type="hidden" name="action" value="update" />
-            <input type="hidden" name="user_id" id="updateUserId" />
-            <button type="submit">Update User</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- The Modal for Deleting User -->
-      <div id="deleteUserModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('deleteUserModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Delete User</h2>
-          <p>
-            Are you sure you want to delete
-            <strong id="deleteUserName"></strong>?
-          </p>
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="delete" />
-            <input type="hidden" name="user_id" id="deleteUserId" />
-            <button type="submit">Delete User</button>
-          </form>
-        </div>
+    <!-- The Modal for Adding User -->
+    <div id="addUserModal" class="modal">
+      <div class="modal-content">
+        <span
+          class="close"
+          onclick="document.getElementById('addUserModal').style.display='none'"
+        >&times;</span>
+        <h2>Add User</h2>
+        <form method="post">
+          {% csrf_token %} {{ form.as_p }}
+          <input type="hidden" name="action" value="add" />
+          <button type="submit">Add User</button>
+        </form>
       </div>
     </div>
-  </body>
+
+    <div class="users-container">
+      <!-- List of existing users -->
+      <ul>
+        {% for user in users %}
+        <li>
+          {{ user.username }} - {{ user.email }}
+          <div>
+            <!-- Update form button -->
+            <form method="post" style="display: inline-block">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update" />
+              <input type="hidden" name="user_id" value="{{ user.id }}" />
+              <button type="submit" class="update">Update</button>
+            </form>
+
+            <!-- Delete form button -->
+            <form
+              method="post"
+              style="display: inline-block"
+              onsubmit="return confirm('Are you sure you want to delete {{ user.username }}?');"
+            >
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="user_id" value="{{ user.id }}" />
+              <button type="submit" class="delete">Delete</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+
+    <!-- The Modal for Updating User -->
+    <div id="updateUserModal" class="modal">
+      <div class="modal-content">
+        <span
+          class="close"
+          onclick="document.getElementById('updateUserModal').style.display='none'"
+        >&times;</span>
+        <h2>Update User</h2>
+        <form method="post">
+          {% csrf_token %} {{ form.as_p }}
+          <input type="hidden" name="action" value="update" />
+          <input type="hidden" name="user_id" id="updateUserId" />
+          <button type="submit">Update User</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- The Modal for Deleting User -->
+    <div id="deleteUserModal" class="modal">
+      <div class="modal-content">
+        <span
+          class="close"
+          onclick="document.getElementById('deleteUserModal').style.display='none'"
+        >&times;</span>
+        <h2>Delete User</h2>
+        <p>
+          Are you sure you want to delete
+          <strong id="deleteUserName"></strong>?
+        </p>
+        <form method="post">
+          {% csrf_token %}
+          <input type="hidden" name="action" value="delete" />
+          <input type="hidden" name="user_id" id="deleteUserId" />
+          <button type="submit">Delete User</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function logoutUser() {
+      fetch('{% url "logout" %}', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken') 
+        },
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message) {
+          window.location.href = 'accounts/login/'; 
+        } else {
+          console.error('Logout failed:', data.error);
+        }
+      })
+      .catch(error => console.error('Error:', error));
+    }
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  </script>
+</body>
 </html>

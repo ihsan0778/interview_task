@@ -11,11 +11,10 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="update" />
       <input type="hidden" name="user_id" value="{{ user.id }}" />
-
       <!-- Display specific fields you want to update -->
       <label for="username">Username:</label>
       <input
-        type="text"
+        type="username"
         id="username"
         name="username"
         value="{{ user.username }}"
@@ -28,6 +27,15 @@
         id="email"
         name="email"
         value="{{ user.email }}"
+        required
+      /><br /><br />
+
+      <label for="role">Role:</label>
+      <input
+        type="role"
+        id="role"
+        name="role"
+        value="{{ user.role }}"
         required
       /><br /><br />
 

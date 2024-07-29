@@ -1,20 +1,142 @@
-<!-- product_detail.html -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Product Detail</title>
-  </head>
-  <body>
-    <h1>{{ product.name }}</h1>
-    <p>Price: {{ product.price }}</p>
-    <a href="{% url 'product_update' product.pk %}">Update</a>
-    <form
-      action="{% url 'product_delete' product.pk %}"
-      method="post"
-      style="display: inline"
-    >
-      {% csrf_token %}
-      <button type="submit">Delete</button>
-    </form>
-  </body>
+<head>
+  <title>Product Detail</title>
+  <style>
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      border-radius: 10px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+    .button {
+      display: inline-block;
+      padding: 10px 20px;
+      margin: 10px 0;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: white;
+    }
+    .button-update {
+      background-color: #007bff;
+    }
+    .button-update:hover {
+      background-color: #0056b3;
+    }
+    .button-delete {
+      background-color: #dc3545;
+    }
+    .button-delete:hover {
+      background-color: #c82333;
+    }
+    .button-encrypt {
+      background-color: #28a745;
+    }
+    .button-encrypt:hover {
+      background-color: #218838;
+    }
+    .button-decrypt {
+      background-color: #ffc107;
+    }
+    .button-decrypt:hover {
+      background-color: #e0a800;
+    }
+  </style>
+  <script>
+    // Dummy encryption/decryption functions for demonstration
+    function encryptText(text) {
+      // Replace with actual encryption logic
+      return btoa(text); // Base64 encoding for demo purposes
+    }
+
+    function decryptText(text) {
+      // Replace with actual decryption logic
+      return atob(text); // Base64 decoding for demo purposes
+    }
+
+    function handleEncrypt() {
+      const details = document.getElementById('productDetails').innerText;
+      const encrypted = encryptText(details);
+      document.getElementById('encryptedDetails').innerText = encrypted;
+      document.getElementById('encryptionModal').style.display = 'block';
+    }
+
+    function handleDecrypt() {
+      const encrypted = document.getElementById('encryptedDetails').innerText;
+      const decrypted = decryptText(encrypted);
+      document.getElementById('decryptedDetails').innerText = decrypted;
+      document.getElementById('decryptionModal').style.display = 'block';
+    }
+
+    function closeModal(modalId) {
+      document.getElementById(modalId).style.display = 'none';
+    }
+  </script>
+</head>
+<body>
+  <h1>{{ product.name }}</h1>
+  <p id="productDetails">
+    Title: {{ product.title }}<br>
+    Category: {{ product.category }}<br>
+    Description: {{ product.description }}<br>
+    Price: {{ product.price }}<br>
+    Status: {{ product.status }}<br>
+    Created At: {{ product.created_at }}<br>
+    Updated At: {{ product.updated_at }}<br>
+    Created By: {{ product.created_by }}<br>
+    Video: {{ product.video }}
+  </p>
+
+  <!-- Encrypt Button -->
+  <button class="button button-encrypt" onclick="handleEncrypt()">Encrypt Details</button>
+
+  <!-- Decrypt Button -->
+  <button class="button button-decrypt" onclick="handleDecrypt()">Decrypt Details</button>
+
+  <!-- The Modal for Encrypted Details -->
+  <div id="encryptionModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('encryptionModal')">&times;</span>
+      <h2>Encrypted Product Details</h2>
+      <p id="encryptedDetails"></p>
+    </div>
+  </div>
+
+  <!-- The Modal for Decrypted Details -->
+  <div id="decryptionModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal('decryptionModal')">&times;</span>
+      <h2>Decrypted Product Details</h2>
+      <p id="decryptedDetails"></p>
+    </div>
+  </div>
+</body>
 </html>

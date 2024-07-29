@@ -32,7 +32,7 @@ class CustomUser(AbstractUser):
     activation_key = models.CharField(max_length=255, blank=True)
     is_active = models.BooleanField(default=False)
     email = models.EmailField(unique=True, blank=False)
-    username = models.CharField(max_length=120, blank=True, null=True)
+    username = models.CharField(max_length=120,default="username", blank=False, null=False)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

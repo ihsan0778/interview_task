@@ -9,6 +9,11 @@ class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
         fields = ['id','category', 'title', 'description', 'price', 'video']
+
+class ProductupdateForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ['id','category', 'title', 'description', 'price', 'video']        
      
 class CategoryForm(forms.ModelForm):
     class Meta:

@@ -11,7 +11,7 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ('username', 'email', 'password1', 'password2', 'role')
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.username = self.cleaned_data['email']
+        user.username = self.cleaned_data['username']
         user.role = self.cleaned_data['role']
         if commit:
             user.save()
@@ -22,11 +22,12 @@ class CustomUserUpdateForm(UserChangeForm):
 
     class Meta:
         model = CustomUser
-        fields = ('username', 'email')
+        fields = ('username', 'email','role')
     
     def save(self, commit=True):
         user = super().save(commit=False)
         user.username = self.cleaned_data['username']
+        user.role = self.cleaned_data['role']
         if commit:
             user.save()
         return user

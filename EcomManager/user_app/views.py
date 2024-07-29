@@ -21,6 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
 from django.views import View
 from django.http import HttpResponseBadRequest
+from django.contrib.auth import logout
 
 User = get_user_model()
 
@@ -29,8 +30,16 @@ class UserListView(View):
     template_name = 'user_app/user_list.html'
     form_class = CustomUserCreationForm
 
+    def test_func(self):
+        # Check if the current user is an admin
+        return self.request.user.is_superuser
+
     def get(self, request):
-        users = User.objects.all()
+        users=None
+        if request.user.is_superuser:
+            users = User.objects.all()
+        else:
+            users = User.objects.filter(id=request.user.id)         
         form = self.form_class()
         return render(request, self.template_name, {'users': users, 'form': form})
 
@@ -65,18 +74,21 @@ class UserListView(View):
         elif action == 'update':
             user_id = request.POST.get('user_id')
             user = get_object_or_404(User, pk=user_id)
+            # username = user.username
             form = CustomUserUpdateForm(request.POST,instance=user)
             if form.is_valid():
                 form.save()
                 user = User.objects.all()
                 return render(request, 'user_app/user_list.html', {'users': user, 'form': form})
-            else:
-                form=CustomUserUpdateForm(instance=user)
-                return render(request, 'user_app/user_update.html', {'form': form, 'user': user})
+                # user = get_object_or_404(User, pk=user_id)
+            # form=CustomUserUpdateForm(instance=user)
+            return render(request, 'user_app/user_update.html', {'user': user})
 
         elif action == 'delete':
             user_id = request.POST.get('user_id')
             user = get_object_or_404(User, pk=user_id)
+            if user.is_superuser:
+                return HttpResponseBadRequest("Invalid action")
             user.delete()
             user = User.objects.all()
             return redirect('user_list')
@@ -123,30 +135,44 @@ class ActivateAccountView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class CustomLoginView(BaseLoginView):
-    """
-    Custom login view to return JWT token along with user info.
-    """
-    def form_valid(self, form):
-        # Log the user in
-        auth_login(self.request, form.get_user())
+   def form_valid(self, form):
+        try:
+            # Log the user in
+            user = form.get_user()
+            auth_login(self.request, user)
 
-        # Generate JWT token
-        user = self.request.user
-        refresh = RefreshToken.for_user(user)
+            # Generate JWT token
+            refresh = RefreshToken.for_user(user)
+            access_token = str(refresh.access_token)
 
-        data = {
-            'token': str(refresh.access_token),
-            'user': {
-                'id': user.id,
-                'email': user.email,
-                'username': user.username,
-                'role': user.role,
-                # Add more user data fields as needed
+            data = {
+                'token': access_token,
+                'user': {
+                    'id': user.id,
+                    'email': user.email,
+                    'username': user.username,
+                    'role': getattr(user, 'role', None),  # Ensure 'role' is safely accessed
+                    # Add more user data fields as needed
+                }
             }
-        }
-        
-        return JsonResponse(data)
 
-    def form_invalid(self, form):
-        # Handle invalid login attempt
-        return JsonResponse({'error': 'Invalid credentials'}, status=400)
+            return redirect('product_list')  
+
+        except Exception as e:
+            # Handle unexpected errors
+            return JsonResponse({'error': 'An unexpected error occurred', 'details': str(e)}, status=500)
+
+def form_invalid(self, form):
+        try:
+            # Handle invalid login attempt
+            return JsonResponse({'error': 'Invalid credentials'}, status=400)
+        except Exception as e:
+            # Handle unexpected errors in invalid form case
+            return JsonResponse({'error': 'An unexpected error occurred', 'details': str(e)}, status=500)
+        
+@csrf_exempt
+def logout_view(request):
+    if request.method == 'POST':
+        logout(request)
+        return JsonResponse({'message': 'Successfully logged out'}, status=200)
+    return JsonResponse({'error': 'Invalid request method'}, status=400)        

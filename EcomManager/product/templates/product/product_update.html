@@ -1,9 +1,6 @@
 <!-- product_update.html -->
 
 <h1>Update Product</h1>
-<script>
-  console.log("Prod :", "{{product.id}}");
-</script>
 <form method="post" enctype="multipart/form-data">
   {% csrf_token %} {{ form.as_p }}
   <input type="hidden" name="action" value="update" />

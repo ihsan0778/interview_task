@@ -37,11 +37,23 @@
 
 from django.urls import path
 
-from .views import ProductListView, ProductDetailView, CategoryListView
+from .views import ProductListView, ProductDetailView, CategoryListView,EncryptView,DecryptView,\
+test_encryption_view, GenerateDummyProductsView, ProductHistoryView, ProductApproveView, \
+trigger_dummy_data_generation, export_products, ProductExportView
+
 
 urlpatterns = [
     path('', ProductListView.as_view(), name='product_list'),
-    path('/<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
+    path('<int:pk>/', ProductDetailView.as_view(), name='product_detail'),
     path('categories/', CategoryListView.as_view(), name='category_list'),
-    # Add paths for update and delete views as needed
+    path('encrypt/', EncryptView.as_view(), name='encrypt'),
+    path('decrypt/', DecryptView.as_view(), name='decrypt'),
+    path('test-encryption/', test_encryption_view, name='test_encryption'),
+    path('generate-dummy-products/', GenerateDummyProductsView.as_view(), 
+         name='generate-dummy-products'),
+    path('generate-dummy-data/', trigger_dummy_data_generation, name='generate-dummy-data'),
+     path('start_export-products/', export_products, name='export-products'),
+    path('export-products/', ProductExportView.as_view(), name='export-products'),
+     path('approve/<int:pk>/', ProductApproveView.as_view(), name='product-approve'),
+    path('history/', ProductHistoryView.as_view(), name='product-history'),
 ]

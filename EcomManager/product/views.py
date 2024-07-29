@@ -9,9 +9,9 @@ from django.urls import reverse_lazy
 from .models import Product, Category
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from utils.utility import encrypt_data, decrypt_data
+from utils.utility import encrypt_data, decrypt_data,encrypt_object_fields,decrypt_object_fields
 from django.shortcuts import render, redirect, get_object_or_404
-from .forms import GenerateDummyProductsForm, ProductForm, CategoryForm
+from .forms import GenerateDummyProductsForm, ProductForm, CategoryForm,ProductupdateForm
 from django.http import HttpResponse, HttpResponseForbidden, HttpResponseBadRequest,\
     Http404
 from .tasks import generate_dummy_data, process_video
@@ -21,20 +21,34 @@ from .decorators import admin_required, staff_or_admin_required, \
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, render, redirect, get_object_or_404
 from django.views import View
+from django.http import JsonResponse
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(admin_or_agent_permissionrequired, name='dispatch')
 class ProductListView(View):
     def get(self, request):
-        products = Product.objects.all()
+        is_admin_or_staff = request.user.is_superuser or hasattr(request.user, 'profile') and \
+                            request.user.profile.role in ['admin', 'staff']
+        
+        if request.user.is_superuser:
+            products = Product.objects.all()
+        else:
+            products = Product.objects.filter(created_by=request.user)
+        
         form = ProductForm()
-        return render(request, 'product/product_list.html', {'products': products, 'form': form})
+        
+        context = {
+            'products': products,
+            'form': form,
+            'is_admin_or_staff': is_admin_or_staff,
+        }
+        
+        return render(request, 'product/product_list.html', context)
 
     def post(self, request):
         action = request.POST.get('action')
-
         if action == 'add':
-            form = ProductForm(request.POST)
+            form = ProductForm(request.POST or None)
             video_file = None 
             form.instance.created_by = self.request.user
             if 'video' in request.FILES:
@@ -47,36 +61,52 @@ class ProductListView(View):
                     form.add_error('video', ValidationError('Total video size cannot exceed 20 MB.'))
                     return self.form_invalid(form)
             
-            # Save the product instance without committing to the database
-            instance = form.save(commit=False)
-            instance.save()
-            # Call Celery task for video processing
-
             if form.is_valid():
-                form.save()
+                instance = form.save(commit=False)
+                instance.save()
+            # Call Celery task for video processin
                 if video_file:
+                    products = Product.objects.all()
                     video_content = video_file.read()
                     video_base64 = base64.b64encode(video_content).decode('utf-8')
                     process_video.delay(instance.id, video_file.name, video_file.size, video_base64)
-                return redirect('product_list')
-            else:
-                products = Product.objects.all()
-                return render(request, 'product/product_list.html', {'products': products, 'form': form})
+                    return render(request, 'product/product_list.html', {'products': products, 'form': form})
+                else:
+                    products = Product.objects.all()
+                    return render(request, 'product/product_list.html', {'products': products, 'form': form})
 
         elif action == 'update':
             product = get_object_or_404(Product, pk=request.POST['product_id'])
             form = ProductForm(request.POST,instance=product)
+            video_file = None 
             if form.is_valid():
-                form.save()
+                if 'video' in request.FILES:
+                    video_file = request.FILES['video']
+                    total_size = video_file.size
+                    # Validate total size for multiple video uploads
+                    for product in Product.objects.all():
+                        total_size += product.video.size if product.video else 0
+                    if total_size > 20 * 1024 * 1024:  # 20 MB
+                        return HttpResponseBadRequest("Total video size cannot exceed 20 MB")
+                instance = form.save(commit=False)
+                instance.save()
+                if video_file:
+                    products = Product.objects.all()
+                    video_content = video_file.read()
+                    video_base64 = base64.b64encode(video_content).decode('utf-8')
+                    process_video.delay(instance.id, video_file.name, video_file.size, video_base64)
+                    #return render(request, 'product/product_list.html', {'products': products, 'form': form})
                 products = Product.objects.all()
-                return render(request, 'product/product_list.html', {'products': products, 'form': form})
+                form = ProductForm()
+                return redirect('product_list')
             else:
                 form=ProductForm(instance=product)
                 return render(request, 'product/product_update.html', {'form': form, 'product': product})
 
         elif action == 'delete':
-            product_id = request.POST.get('product_id')
-            product = get_object_or_404(Product, pk=product_id)
+           
+            # Extract the product_id and use it to get the product instance
+            product = get_object_or_404(Product, pk=request.POST['product_id'])
             product.delete()
             return redirect('product_list')  # Replace with your URL name for product list
 
@@ -96,7 +126,7 @@ class CategoryListView(View):
 
     def post(self, request):
         action = request.POST.get('action')
-
+       
         if action == 'add':
             form = CategoryForm(request.POST)
             if form.is_valid():
@@ -171,49 +201,65 @@ class ProductExportView(View):
     def get(self, request, *args, **kwargs):
         format_type = request.GET.get('format', 'csv')  # Default to CSV if format not specified
 
+        export_function = {
+            'csv': self.export_to_csv,
+            'excel': self.export_to_excel
+        }.get(format_type, self.invalid_format)
+
+        return export_function()
+
+    def export_to_csv(self):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="products.csv"'
+
+        writer = csv.writer(response)
+        self._write_csv_header(writer)
+        self._write_product_data(writer)
+
+        return response
+
+    def export_to_excel(self):
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="products.xlsx"'
+
+        wb = Workbook()
+        ws = wb.active
+        self._write_excel_header(ws)
+        self._write_product_data(ws, is_excel=True)
+
+        wb.save(response)
+        return response
+
+    def _write_csv_header(self, writer):
+        writer.writerow(['Title', 'Description', 'Price', 'Status', 'Created At', 'Updated At', 'Uploaded By'])
+
+    def _write_excel_header(self, ws):
+        ws.append(['Title', 'Description', 'Price', 'Status', 'Uploaded By'])
+
+    def _get_product_data(self, product, is_excel=False):
+        data = [
+            product.title,
+            product.description,
+            product.price,
+            product.status,
+            product.created_by.email
+        ]
+        if not is_excel:
+            data.extend([product.created_at, product.updated_at])
+        return data
+
+    def _write_product_data(self, writer_or_ws, is_excel=False):
         products = Product.objects.all()
+        for product in products:
+            data = self._get_product_data(product, is_excel)
+            if is_excel:
+                writer_or_ws.append(data)
+            else:
+                writer_or_ws.writerow(data)
 
-        if format_type == 'csv':
-            response = HttpResponse(content_type='text/csv')
-            response['Content-Disposition'] = 'attachment; filename="products.csv"'
+    def invalid_format(self):
+        return HttpResponse("Invalid format requested", status=400)
 
-            writer = csv.writer(response)
-            writer.writerow(['Title', 'Description', 'Price', 'Status', 'Created At', 'Updated At', 'Uploaded By'])
-
-            for product in products:
-                writer.writerow([
-                    product.title,
-                    product.description,
-                    product.price,
-                    product.status,
-                    product.created_at,
-                    product.updated_at,
-                    product.created_by.email
-                ])
-
-            return response
-
-        elif format_type == 'excel':
-            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-            response['Content-Disposition'] = 'attachment; filename="products.xlsx"'
-
-            wb = Workbook()
-            ws = wb.active
-            ws.append(['Title', 'Description', 'Price', 'Status', 'Uploaded By'])
-            for product in products:
-                ws.append([
-                    product.title,
-                    product.description,
-                    product.price,
-                    product.status,
-                    product.created_by.email
-                ])
-
-            wb.save(response)
-            return response
-
-        else:
-            return HttpResponse("Invalid format requested", status=400)
 
 @method_decorator(staff_or_admin_required, name='dispatch')     
 class ProductApproveView(UpdateView):
@@ -223,17 +269,18 @@ class ProductApproveView(UpdateView):
     model = Product
     template_name = 'product/product_approve_reject_form.html'
     fields = ['status']
-    success_url = reverse_lazy('product-list')
+    success_url = reverse_lazy('product_list')
     
     def form_valid(self, form):
         """
         Handles form submission for approving or rejecting a product.
         """
         instance = get_object_or_404(Product, pk=self.object.pk)
-
         if instance.status != 'draft':
             return HttpResponseForbidden("You can only approve or reject products with status 'draft'.")
-
+        if form.cleaned_data['status'] not in ['approved', 'rejected']:
+            form.add_error('status', "Invalid status value. It must be either 'approved' or 'rejected'.")
+            return self.form_invalid(form)
         # Update the instance fields
         instance.status = form.cleaned_data['status']
         instance.approved_by = self.request.user
@@ -241,7 +288,11 @@ class ProductApproveView(UpdateView):
         # Save the updated instance
         instance.save()
         return super().form_valid(form)
-
+    def form_invalid(self, form):
+        """
+        Handle the invalid form case.
+        """
+        return self.render_to_response(self.get_context_data(form=form))
 @method_decorator(admin_or_agent_permissionrequired, name='dispatch')
 class ProductHistoryView(ListView):
     """
@@ -263,13 +314,32 @@ class ProductHistoryView(ListView):
         elif self.request.user.role == 'end_user':
             queryset = Product.objects.all().filter(created_by=self.request.user)
 
-        # Filter by status if query parameter is provided
-        show_rejected = self.request.GET.get('show_rejected')
-        show_approved = self.request.GET.get('show_approved')
-
-        if show_rejected:
-            queryset = queryset.filter(status='rejected')
-        elif show_approved:
-            queryset = queryset.filter(status='approved')
-
         return queryset
+
+
+class EncryptView(View):
+    def post(self, request):
+        try:
+            data = request.POST.get('data')
+            if not data:
+                return JsonResponse({'error': 'No data provided'}, status=400)
+            
+            encrypted_data = encrypt_data(data)
+            return JsonResponse({'encrypted_data': encrypted_data}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+class DecryptView(View):
+    def post(self, request):
+        try:
+            encrypted_data = request.POST.get('data')
+            if not encrypted_data:
+                return JsonResponse({'error': 'No data provided'}, status=400)
+            
+            decrypted_data = decrypt_data(encrypted_data)
+            return JsonResponse({'decrypted_data': decrypted_data}, status=200)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+        
+def test_encryption_view(request):
+    return render(request, 'product/test_encryption.html')        

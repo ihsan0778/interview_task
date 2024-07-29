@@ -1,334 +1,264 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Product List</title>
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-      }
-      h1 {
-        text-align: center;
-      }
-      .container {
-        width: 80%;
-        margin: 0 auto;
-      }
-      .add-product-btn {
-        display: block;
-        width: 200px;
-        margin: 20px auto;
-        padding: 10px;
-        background-color: #007bff;
-        color: white;
-        text-align: center;
-        text-decoration: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-      .add-product-btn:hover {
-        background-color: #0056b3;
-      }
-      .products-container ul {
-        list-style: none;
-        padding: 0;
-      }
-      .products-container ul li {
-        border: 1px solid #ddd;
-        padding: 10px;
-        border-radius: 5px;
-        margin: 10px 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .products-container ul li form {
-        margin: 0;
-      }
-      .products-container ul li form button {
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 5px;
-      }
-      .products-container ul li form button.update {
-        background-color: #ffc107;
-        color: white;
-      }
-      .products-container ul li form button.update:hover {
-        background-color: #e0a800;
-      }
-      .products-container ul li form button.delete {
-        background-color: #dc3545;
-        color: white;
-      }
-      .products-container ul li form button.delete:hover {
-        background-color: #c82333;
-      }
-      /* Modal styles */
-      .modal {
-        display: none;
-        position: fixed;
-        z-index: 1;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.4);
-        padding-top: 60px;
-      }
-      .modal-content {
-        background-color: #fefefe;
-        margin: 5% auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-        border-radius: 10px;
-      }
-      .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-      }
-      .close:hover,
-      .close:focus {
-        color: black;
-        text-decoration: none;
-      }
-      .progress {
-        display: none;
-        margin-top: 10px;
-      }
-      .progress-bar {
-        width: 0%;
-        height: 20px;
-        background-color: #007bff;
-        text-align: center;
-        line-height: 20px;
-        color: white;
-        border-radius: 5px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>Product List</h1>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Product List</title>
+  <style>
+    /* Add your existing styles here */
+    body {
+      font-family: Arial, sans-serif;
+    }
+    h1 {
+      text-align: center;
+    }
+    .container {
+      width: 80%;
+      margin: 0 auto;
+    }
+    .add-product-btn {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+      text-decoration: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .add-product-btn:hover {
+      background-color: #0056b3;
+    }
+    .products-container ul {
+      list-style: none;
+      padding: 0;
+    }
+    .products-container ul li {
+      border: 1px solid #ddd;
+      padding: 10px;
+      border-radius: 5px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .products-container ul li form {
+      margin: 0;
+    }
+    .products-container ul li form button {
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+    .products-container ul li form button.update {
+      background-color: #ffc107;
+      color: white;
+    }
+    .products-container ul li form button.update:hover {
+      background-color: #e0a800;
+    }
+    .products-container ul li form button.delete {
+      background-color: #dc3545;
+      color: white;
+    }
+    .products-container ul li form button.delete:hover {
+      background-color: #c82333;
+    }
+    .products-container ul li form button.approve {
+      background-color: #28a745;
+      color: white;
+    }
+    .products-container ul li form button.approve:hover {
+      background-color: #218838;
+    }
+    .products-container ul li form button.reject {
+      background-color: #dc3545;
+      color: white;
+    }
+    .products-container ul li form button.reject:hover {
+      background-color: #c82333;
+    }
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding-top: 60px;
+    }
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      border-radius: 10px;
+    }
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+    }
+    .progress {
+      display: none;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 20px;
+      background-color: #007bff;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+      border-radius: 5px;
+    }
+  </style>
+  <!-- Include jQuery and jQuery Form Plugin -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#addProductForm').ajaxForm({
+        beforeSend: function() {
+          // Show progress bar
+          $('#uploadProgress').show();
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+          // Update progress bar
+          $('#progressBar').css('width', percentComplete + '%');
+          $('#progressBar').text(percentComplete + '%');
+        },
+        success: function(response) {
+          // Handle success response
+          console.log('Response:', response);
+          $('#uploadProgress').hide();
+          alert('Upload complete!');
+          window.location.reload(); // Optionally reload the page
+        },
+        error: function(xhr, status, error) {
+          // Handle error response
+          console.error('Error:', error);
+          $('#uploadProgress').hide();
+          alert('Upload failed!');
+        }
+      });
+    });
+    function encryptProductData(productId, data) {
+      // Example encryption function
+      var encryptedData = btoa(data); // Base64 encoding
+      document.getElementById('encryptedProductData' + productId).innerText = encryptedData;
+    }
 
-    <div class="container">
-      <!-- Button to open the modal -->
-      <button
-        class="add-product-btn"
-        onclick="document.getElementById('addProductModal').style.display='block'"
-      >
-        Add Product
-      </button>
+    function decryptProductData(productId, encryptedData) {
+      // Example decryption function
+      var decryptedData = atob(encryptedData); // Base64 decoding
+      document.getElementById('decryptedProductData' + productId).innerText = decryptedData;
+    }
+  </script>
+</head>
+<body>
+  <h1>Product List</h1>
 
-      <!-- The Modal for Adding Product -->
-      <div id="addProductModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('addProductModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Add Product</h2>
-          <form id="addProductForm" method="post" enctype="multipart/form-data">
-            {% csrf_token %} {{ form.as_p }}
-            <input type="hidden" name="action" value="add" />
-            <button type="submit">Add Product</button>
-          </form>
-          <div class="progress">
-            <div id="progressBar" class="progress-bar">0%</div>
+  <div class="container">
+    <!-- Button to open the modal -->
+    <button class="add-product-btn" onclick="document.getElementById('addProductModal').style.display='block'">
+      Add Product
+    </button>
+    <a href="{% url 'export-products' %}?format=csv" class="export-btn">Export as CSV</a>
+    <a href="{% url 'export-products' %}?format=excel" class="export-btn">Export as Excel</a>
+    <!-- The Modal for Adding Product -->
+    <div id="addProductModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="document.getElementById('addProductModal').style.display='none'">&times;</span>
+        <h2>Add Product</h2>
+        <form id="addProductForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+          <!-- Form fields -->
+          {{ form.as_p }}
+          <input type="hidden" name="action" value="add" />
+          <button type="submit">Add Product</button>
+          <div class="progress" id="uploadProgress" style="display: none;">
+            <div class="progress-bar" id="progressBar" style="width: 0%;">0%</div>
           </div>
-        </div>
-      </div>
-
-      <div class="products-container">
-        <!-- List of existing products -->
-        <ul>
-          {% for product in products %}
-          <li>
-            <div>
-              <strong>{{ product.title }}</strong> - ${{ product.price }}
-            </div>
-            <div>
-              <!-- Update form button -->
-              <form method="post" style="display: inline-block">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="update" />
-                <input
-                  type="hidden"
-                  name="product_id"
-                  value="{{ product.id }}"
-                />
-                <button type="submit" class="update">Update</button>
-              </form>
-              <!-- Delete form button -->
-              <form
-                method="post"
-                style="display: inline-block"
-                onsubmit="return confirm('Are you sure you want to delete {{ product.title }}?');"
-              >
-                {% csrf_token %}
-                <input type="hidden" name="action" value="delete" />
-                <input
-                  type="hidden"
-                  name="product_id"
-                  value="{{ product.id }}"
-                />
-                <button type="submit" class="delete">Delete</button>
-              </form>
-            </div>
-          </li>
-          {% endfor %}
-        </ul>
-      </div>
-
-      <!-- The Modal for Updating Product -->
-      <div id="updateProductModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('updateProductModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Update Product</h2>
-          <form method="post">
-            {% csrf_token %} {{ form.as_p }}
-            <input type="hidden" name="action" value="update" />
-            <input type="hidden" name="product_id" id="updateProductId" />
-            <button type="submit">Update Product</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- The Modal for Deleting Product -->
-      <div id="deleteProductModal" class="modal">
-        <div class="modal-content">
-          <span
-            class="close"
-            onclick="document.getElementById('deleteProductModal').style.display='none'"
-            >&times;</span
-          >
-          <h2>Delete Product</h2>
-          <p>
-            Are you sure you want to delete
-            <strong id="deleteProductTitle"></strong>?
-          </p>
-          <form method="post">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="delete" />
-            <input type="hidden" name="product_id" id="deleteProductId" />
-            <button type="submit">Delete Product</button>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
 
-    <script>
-      document
-        .getElementById("addProductForm")
-        .addEventListener("submit", function (event) {
-          event.preventDefault();
+    <div class="products-container">
+      <!-- List of existing products -->
+      <ul>
+        {% for product in products %}
+        <li>
+          <div>
+            <!-- Link to product detail page -->
+            <a href="{% url 'product_detail' product.id %}">
+              <strong>{{ product.title }}</strong>
+            </a> - ${{ product.price }}
+          </div>
+          <div>
+             <!-- Encrypt button -->
+             <button onclick="encryptProductData('{{ product.id }}', '{{ product.title }} - ${{ product.price }}')">Encrypt</button>
+             <p>Encrypted Data: <span id="encryptedProductData{{ product.id }}"></span></p>
+ 
+             <!-- Decrypt button -->
+             <button onclick="decryptProductData('{{ product.id }}', document.getElementById('encryptedProductData{{ product.id }}').innerText)">Decrypt</button>
+             <p>Decrypted Data: <span id="decryptedProductData{{ product.id }}"></span></p>
 
-          var form = event.target;
-          var formData = new FormData(form);
-          var progressBar = document.getElementById("progressBar");
-          var progressDiv = document.querySelector(".progress");
+            <!-- Display approve and reject buttons only if product status is draft -->
+            {% if product.status == "draft" and is_admin_or_staff %}
+              <!-- Approve form button -->
+              <form method="post" action="{% url 'product-approve' product.id %}" style="display: inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="approved" />
+                <button type="submit" class="approve">Approve</button>
+              </form>
 
-          // Show progress bar if a video file is present
-          var videoFile = formData.get("video");
-          if (videoFile && videoFile.size > 0) {
-            progressDiv.style.display = "block";
-          } else {
-            form.submit(); // If no file, submit the form normally
-            return;
-          }
+              <!-- Reject form button -->
+              <form method="post" action="{% url 'product-approve' product.id %}" style="display: inline-block">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="rejected" />
+                <button type="submit" class="reject">Reject</button>
+              </form>
+            {% endif %}
 
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", form.action, true);
-
-          xhr.upload.addEventListener("progress", function (e) {
-            if (e.lengthComputable) {
-              var percentComplete = (e.loaded / e.total) * 100;
-              progressBar.style.width = percentComplete + "%";
-              progressBar.textContent = Math.round(percentComplete) + "%";
-            }
-          });
-
-          xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-              // Handle success
-              document.getElementById("addProductModal").style.display = "none";
-              progressBar.style.width = "0%";
-              progressBar.textContent = "0%";
-              progressDiv.style.display = "none";
-              // Refresh the page or dynamically update the product list
-              location.reload();
-            }
-          };
-
-          xhr.send(formData);
-        });
-      document
-        .getElementById("addProductForm")
-        .addEventListener("submit", function (event) {
-          event.preventDefault();
-
-          var form = event.target;
-          var formData = new FormData(form);
-          var progressBar = document.getElementById("progressBar");
-          var progressDiv = document.querySelector(".progress");
-
-          // Show progress bar if a video file is present
-          var videoFile = formData.get("video");
-          if (videoFile && videoFile.size > 0) {
-            progressDiv.style.display = "block";
-          } else {
-            form.submit();
-            return;
-          }
-
-          var xhr = new XMLHttpRequest();
-          xhr.open("POST", "/prod/", true); // Correct URL for your Django view
-          xhr.setRequestHeader(
-            "X-CSRFToken",
-            formData.get("csrfmiddlewaretoken")
-          ); // Ensure CSRF token is set
-
-          xhr.upload.addEventListener("progress", function (e) {
-            if (e.lengthComputable) {
-              var percentComplete = (e.loaded / e.total) * 100;
-              progressBar.style.width = percentComplete + "%";
-              progressBar.textContent = Math.round(percentComplete) + "%";
-            }
-          });
-
-          xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4) {
-              if (xhr.status == 200) {
-                // Handle success
-                document.getElementById("addProductModal").style.display =
-                  "none";
-                progressBar.style.width = "0%";
-                progressBar.textContent = "0%";
-                progressDiv.style.display = "none";
-                // Optionally, refresh the page or update the product list dynamically
-                // location.reload();
-              } else {
-                // Handle errors
-                console.error("Error adding product:", xhr.status);
-                // You can handle errors here, display a message to the user, etc.
-              }
-            }
-          };
-
-          xhr.send(formData);
-        });
-    </script>
-  </body>
+            <!-- Update form button -->
+            <form id="addProductForm" method="post" style="display: inline-block" enctype="multipart/form-data">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="update" />
+              <input type="hidden" name="product_id" value="{{ product.id }}" />
+              <button type="submit" class="update">Update</button>
+              <div class="progress" id="uploadProgress">
+                <div class="progress-bar" id="progressBar">0%</div>
+              </div>
+            </form>
+            <!-- Delete form button -->
+            <form method="post" style="display: inline-block" onsubmit="return confirm('Are you sure you want to delete {{ product.title }}?');">
+              {% csrf_token %}
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="product_id" value="{{ product.id }}" />
+              <button type="submit" class="delete">Delete</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+</body>
 </html>
