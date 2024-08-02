@@ -130,15 +130,18 @@
       <i class="fas fa-sign-out-alt"></i> Logout
     </a>
 
-    <!-- Button to open the modal -->
+    <!-- Button to open the modal, only visible to superusers -->
+    {% if request.user.is_superuser %}
     <button
       class="add-user-btn"
       onclick="document.getElementById('addUserModal').style.display='block'"
     >
       Add User
     </button>
+    {% endif %}
 
-    <!-- The Modal for Adding User -->
+    <!-- The Modal for Adding User, only visible to superusers -->
+    {% if request.user.is_superuser %}
     <div id="addUserModal" class="modal">
       <div class="modal-content">
         <span
@@ -153,6 +156,7 @@
         </form>
       </div>
     </div>
+    {% endif %}
 
     <div class="users-container">
       <!-- List of existing users -->

@@ -22,77 +22,86 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.http import HttpResponseBadRequest
 from django.contrib.auth import logout
+from django.urls import reverse
 
 User = get_user_model()
 
 @method_decorator(csrf_exempt, name='dispatch')
 class UserListView(View):
-    template_name = 'user_app/user_list.html'
     form_class = CustomUserCreationForm
-
-    def test_func(self):
-        # Check if the current user is an admin
-        return self.request.user.is_superuser
-
-    def get(self, request):
-        users=None
-        if request.user.is_superuser:
-            users = User.objects.all()
-        else:
-            users = User.objects.filter(id=request.user.id)         
-        form = self.form_class()
-        return render(request, self.template_name, {'users': users, 'form': form})
+    template_name = 'user_app/user_list.html'
+    update_template_name = 'user_app/user_update.html'
 
     def post(self, request):
         action = request.POST.get('action')
-
         if action == 'add':
-            form = self.form_class(request.POST)
-            if form.is_valid():
-                user = form.save(commit=False)
-                user.is_active = False
-                user.save()
-
-                # Send email verification
-                current_site = get_current_site(request)
-                mail_subject = 'Activate your account'
-                message = render_to_string('user_app/activation_email.html', {
-                    'user': user,
-                    'domain': current_site.domain,
-                    'token': default_token_generator.make_token(user),
-                    'uid': urlsafe_base64_encode(force_bytes(user.pk))
-                })
-                to_email = form.cleaned_data.get('email')
-                email = EmailMessage(mail_subject, message, to=[to_email])
-                email.send()
-
-                return redirect('account_activation_sent')
+            if request.user.role == "admin":
+                return self.handle_add(request)
             else:
-                users = User.objects.all()
-                return render(request, self.template_name, {'users': users, 'form': form})
-
+                return JsonResponse({'error': 'Only admin have the permission to create user'}, status=400)
         elif action == 'update':
-            user_id = request.POST.get('user_id')
-            user = get_object_or_404(User, pk=user_id)
-            # username = user.username
-            form = CustomUserUpdateForm(request.POST,instance=user)
-            if form.is_valid():
-                form.save()
-                user = User.objects.all()
-                return render(request, 'user_app/user_list.html', {'users': user, 'form': form})
-                # user = get_object_or_404(User, pk=user_id)
-            # form=CustomUserUpdateForm(instance=user)
-            return render(request, 'user_app/user_update.html', {'user': user})
-
+            return self.handle_update(request)
         elif action == 'delete':
-            user_id = request.POST.get('user_id')
-            user = get_object_or_404(User, pk=user_id)
-            if user.is_superuser:
-                return HttpResponseBadRequest("Invalid action")
-            user.delete()
-            user = User.objects.all()
-            return redirect('user_list')
+            return self.handle_delete(request)
         return HttpResponseBadRequest("Invalid action")
+
+    def handle_add(self, request):
+        form = self.form_class(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.is_active = False
+            user.save()
+
+            # Send email verification
+            current_site = get_current_site(request)
+            mail_subject = 'Activate your account'
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            token = default_token_generator.make_token(user)
+
+            message = render_to_string('user_app/activation_email.html', {
+                'user': user,
+                'domain': current_site.domain,
+                'token': token,
+                'uid': uid
+            })
+            activation_link = f"http://{current_site.domain}{reverse('activate', kwargs={'uidb64':uid, 'token': token})}"
+    
+            print(f"Activation link: {activation_link}")
+            to_email = form.cleaned_data.get('email')
+            email = EmailMessage(mail_subject, message, to=[to_email])
+            email.send()
+
+            return redirect('account_activation_sent')
+        else:
+            users = User.objects.all()
+            return render(request, self.template_name, {'users': users, 'form': form})
+
+    def handle_update(self, request):
+        user_id = request.POST.get('user_id')
+        user = get_object_or_404(User, pk=user_id)
+        form = CustomUserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('user_list')
+        else:
+            return render(request, self.update_template_name, {'user': user,
+                                                               'form': form})
+
+    def handle_delete(self, request):
+        user_id = request.POST.get('user_id')
+        user = get_object_or_404(User, pk=user_id)
+        if user.is_superuser:
+            return HttpResponseBadRequest("Invalid action")
+        user.delete()
+        return redirect('user_list')
+
+    def get(self, request):
+        if request.user.is_superuser or request.user.is_staff:
+            users = User.objects.all()
+        else:
+            users = User.objects.filter(pk=request.user.pk)
+        form = self.form_class()
+        return render(request, self.template_name, {'users': users, 'form': form})
 
     def get_success_url(self):
         return reverse_lazy('account_activation_sent')
@@ -151,8 +160,7 @@ class CustomLoginView(BaseLoginView):
                     'id': user.id,
                     'email': user.email,
                     'username': user.username,
-                    'role': getattr(user, 'role', None),  # Ensure 'role' is safely accessed
-                    # Add more user data fields as needed
+                    'role': getattr(user, 'role', None), 
                 }
             }
 

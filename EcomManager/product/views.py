@@ -95,7 +95,7 @@ class ProductListView(View):
                     video_content = video_file.read()
                     video_base64 = base64.b64encode(video_content).decode('utf-8')
                     process_video.delay(instance.id, video_file.name, video_file.size, video_base64)
-                    #return render(request, 'product/product_list.html', {'products': products, 'form': form})
+                    return render(request, 'product/product_list.html', {'products': products, 'form': form})
                 products = Product.objects.all()
                 form = ProductForm()
                 return redirect('product_list')

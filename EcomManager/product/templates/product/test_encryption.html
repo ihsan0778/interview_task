@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Encryption/Decryption</title>
+    <script>
+        async function postData(url = '', data = {}) {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: new URLSearchParams(data)
+            });
+            return response.json();
+        }
+
+        async function encryptData() {
+            const data = document.getElementById('inputData').value;
+            const result = await postData('{% url "encrypt" %}', {data: data});
+            document.getElementById('encryptedData').innerText = JSON.stringify(result);
+        }
+
+        async function decryptData() {
+            const data = document.getElementById('inputEncryptedData').value;
+            const result = await postData('{% url "decrypt" %}', {data: data});
+            document.getElementById('decryptedData').innerText = JSON.stringify(result);
+        }
+    </script>
+</head>
+<body>
+    <h1>Test Encryption/Decryption</h1>
+
+    <h2>Encrypt Data</h2>
+    <input type="text" id="inputData" placeholder="Enter data to encrypt">
+    <button onclick="encryptData()">Encrypt</button>
+    <p>Encrypted Data: <span id="encryptedData"></span></p>
+
+    <h2>Decrypt Data</h2>
+    <input type="text" id="inputEncryptedData" placeholder="Enter encrypted data">
+    <button onclick="decryptData()">Decrypt</button>
+    <p>Decrypted Data: <span id="decryptedData"></span></p>
+</body>
+</html>

@@ -1,45 +1,59 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Update User</title>
-  </head>
-  <body>
-    <h1>Update User</h1>
-
+<!-- The Modal for Updating User -->
+<div id="updateUserModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="document.getElementById('updateUserModal').style.display='none'">&times;</span>
+    <h2>Update User</h2>
     <form method="post">
+    <input type="hidden" name="action" value="update" />
+    <input type="hidden" name="user_id" id="updateUserId" value="{{ user.id }}" />
       {% csrf_token %}
-      <input type="hidden" name="action" value="update" />
-      <input type="hidden" name="user_id" value="{{ user.id }}" />
-      <!-- Display specific fields you want to update -->
+      
+      <!-- Username Field -->
       <label for="username">Username:</label>
-      <input
-        type="username"
-        id="username"
-        name="username"
-        value="{{ user.username }}"
-        required
-      /><br /><br />
-
+      <input type="text" id="username" name="username" value="{{ user.username }}" required /><br /><br />
+      
+      <!-- Email Field -->
       <label for="email">Email:</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        value="{{ user.email }}"
-        required
-      /><br /><br />
-
+      <input type="email" id="email" name="email" value="{{ user.email }}" required /><br /><br />
+      
+      <!-- Role Field -->
       <label for="role">Role:</label>
-      <input
-        type="role"
-        id="role"
-        name="role"
-        value="{{ user.role }}"
-        required
-      /><br /><br />
+      <select id="role" name="role" required>
+        <option value="Admin">Admin</option>
+        <option value="Staff">Staff</option>
+        <option value="End user">End user</option>
+    </select><br /><br />
+    <input type="hidden" id="userRole" value="{{ user.role }}" />
+     
 
+      
       <button type="submit">Update User</button>
     </form>
-  </body>
-</html>
+  </div>
+</div>
+
+<!-- JavaScript to Populate Role Dropdown -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+      // Get the role from the hidden input
+      var userRole = document.getElementById('userRole').value.trim();
+      
+      // Get the select element
+      var roleSelect = document.getElementById('role');
+      
+      // Check if the current role is already in the dropdown
+      var roleOptions = Array.from(roleSelect.options).map(option => option.value);
+      
+      if (!roleOptions.includes(userRole)) {
+          // If the current role is not already in the dropdown, add it
+          var newOption = document.createElement('option');
+          newOption.value = userRole;
+          newOption.text = userRole;
+          roleSelect.add(newOption);
+      }
+      
+      // Set the selected value in the dropdown
+      roleSelect.value = userRole;
+  });
+  </script>
+  

@@ -19,7 +19,6 @@ class CustomUserCreationForm(UserCreationForm):
     
 class CustomUserUpdateForm(UserChangeForm):
     email = forms.EmailField(required=True)
-
     class Meta:
         model = CustomUser
         fields = ('username', 'email','role')

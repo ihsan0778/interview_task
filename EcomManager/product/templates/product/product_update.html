@@ -1,9 +1,66 @@
-<!-- product_update.html -->
-
-<h1>Update Product</h1>
-<form method="post" enctype="multipart/form-data">
-  {% csrf_token %} {{ form.as_p }}
-  <input type="hidden" name="action" value="update" />
-  <input name="product_id" value="{{ product.id }}" />
-  <button type="submit">Update Product</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Product</title>
+  <style>
+     .progress {
+      display: none;
+      margin-top: 10px;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 20px;
+      background-color: #007bff;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+      border-radius: 5px;
+    }
+  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.form/4.3.0/jquery.form.min.js"></script>
+  <script>
+    $(document).ready(function() {
+      $('#updateProductForm').ajaxForm({
+        beforeSend: function() {
+          // Show progress bar
+          $('#uploadProgress').show();
+        },
+        uploadProgress: function(event, position, total, percentComplete) {
+          // Update progress bar
+          $('#progressBar').css('width', percentComplete + '%');
+          $('#progressBar').text(percentComplete + '%');
+        },
+        success: function(response) {
+          // Handle success response
+          console.log('Response:', response);
+          $('#uploadProgress').hide();
+          alert('Update complete!');
+          window.location.href = ''; // Redirect to product list
+        },
+        error: function(xhr, status, error) {
+          // Handle error response
+          console.error('Error:', error);
+          $('#uploadProgress').hide();
+          alert('Update failed!');
+        }
+      });
+    });
+  </script>
+</head>
+<body>
+  <h1>Update Product</h1>
+  <form id="updateProductForm" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="hidden" name="action" value="update" />
+    <input type="hidden" name="product_id" value="{{ product.id }}" />
+    <button type="submit">Update Product</button>
+  </form>
+  <div class="progress" id="uploadProgress" style="display: none;">
+    <div class="progress-bar" id="progressBar">0%</div>
+  </div>
+</body>
+</html>
