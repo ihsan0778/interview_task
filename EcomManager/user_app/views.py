@@ -96,12 +96,15 @@ class UserListView(View):
         return redirect('user_list')
 
     def get(self, request):
-        if request.user.is_superuser or request.user.is_staff:
-            users = User.objects.all()
+        if request.user.is_authenticated:
+            if request.user.is_superuser or request.user.is_staff:
+                users = User.objects.all()
+            else:
+                users = User.objects.filter(pk=request.user.pk)
+            form = self.form_class()
+            return render(request, self.template_name, {'users': users, 'form': form})
         else:
-            users = User.objects.filter(pk=request.user.pk)
-        form = self.form_class()
-        return render(request, self.template_name, {'users': users, 'form': form})
+            return HttpResponseBadRequest("You are- not authorized view this page")
 
     def get_success_url(self):
         return reverse_lazy('account_activation_sent')
@@ -178,9 +181,12 @@ def form_invalid(self, form):
             # Handle unexpected errors in invalid form case
             return JsonResponse({'error': 'An unexpected error occurred', 'details': str(e)}, status=500)
         
-@csrf_exempt
-def logout_view(request):
-    if request.method == 'POST':
+@method_decorator(csrf_exempt, name='dispatch')
+class LogoutView(View):
+    def post(self, request):
         logout(request)
         return JsonResponse({'message': 'Successfully logged out'}, status=200)
-    return JsonResponse({'error': 'Invalid request method'}, status=400)        
+
+    def get(self, request):
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+

@@ -22,6 +22,8 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, render, redirect, get_object_or_404
 from django.views import View
 from django.http import JsonResponse
+import json
+from urllib.parse import unquote, parse_qs
 
 @method_decorator(csrf_exempt, name='dispatch')
 @method_decorator(admin_or_agent_permissionrequired, name='dispatch')
@@ -58,11 +60,12 @@ class ProductListView(View):
                 for product in Product.objects.all():
                     total_size += product.video.size if product.video else 0
                 if total_size > 20 * 1024 * 1024:  # 20 MB
-                    form.add_error('video', ValidationError('Total video size cannot exceed 20 MB.'))
-                    return self.form_invalid(form)
+                     return HttpResponseBadRequest("Total video size cannot exceed 20 MB")
             
             if form.is_valid():
                 instance = form.save(commit=False)
+                if request.user.role == "admin":
+                    instance.status = "approved"
                 instance.save()
             # Call Celery task for video processin
                 if video_file:
@@ -74,7 +77,6 @@ class ProductListView(View):
                 else:
                     products = Product.objects.all()
                     return render(request, 'product/product_list.html', {'products': products, 'form': form})
-
         elif action == 'update':
             product = get_object_or_404(Product, pk=request.POST['product_id'])
             form = ProductForm(request.POST,instance=product)
@@ -102,15 +104,18 @@ class ProductListView(View):
             else:
                 form=ProductForm(instance=product)
                 return render(request, 'product/product_update.html', {'form': form, 'product': product})
+   
+       
+    def delete(self, request, *args, **kwargs):
+        import json
+        data = json.loads(request.body)
+        product_id = data.get('product_id')
+        product = get_object_or_404(Product, pk=product_id)
+        product.delete()
+        return JsonResponse({'message': 'Product deleted successfully'})
 
-        elif action == 'delete':
-           
-            # Extract the product_id and use it to get the product instance
-            product = get_object_or_404(Product, pk=request.POST['product_id'])
-            product.delete()
-            return redirect('product_list')  # Replace with your URL name for product list
 
-        return HttpResponseBadRequest("Invalid action")
+       
     
 class ProductDetailView(View):
     def get(self, request, pk):

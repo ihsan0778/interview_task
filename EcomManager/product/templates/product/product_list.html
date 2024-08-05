@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -170,6 +170,42 @@
       var decryptedData = atob(encryptedData); // Base64 decoding
       document.getElementById('decryptedProductData' + productId).innerText = decryptedData;
     }
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function confirmDelete(productTitle, productId) {
+    if (confirm(`Are you sure you want to delete ${productTitle}?`)) {
+      const csrfToken = getCookie('csrftoken');
+      fetch('', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ product_id: productId })
+      }).then(response => {
+        if (response.ok) {
+          location.reload();
+        } else {
+          alert('Delete failed.');
+        }
+      });
+      return false;
+    }
+    return false;
+  }
   </script>
 </head>
 <body>
@@ -237,23 +273,27 @@
               </form>
             {% endif %}
 
-            <!-- Update form button -->
-            <form id="addProductForm" method="post" style="display: inline-block" enctype="multipart/form-data">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="update" />
-              <input type="hidden" name="product_id" value="{{ product.id }}" />
-              <button type="submit" class="update">Update</button>
-              <div class="progress" id="uploadProgress">
-                <div class="progress-bar" id="progressBar">0%</div>
-              </div>
-            </form>
-            <!-- Delete form button -->
-            <form method="post" style="display: inline-block" onsubmit="return confirm('Are you sure you want to delete {{ product.title }}?');">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="delete" />
-              <input type="hidden" name="product_id" value="{{ product.id }}" />
-              <button type="submit" class="delete">Delete</button>
-            </form>
+            <div>
+              <!-- Update form button -->
+              <form id="addProductForm" method="post" style="display: inline-block" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update" />
+                <input type="hidden" name="product_id" value="{{ product.id }}" />
+                <button type="submit" class="update">Update</button>
+                <div class="progress" id="uploadProgress">
+                  <div class="progress-bar" id="progressBar">0%</div>
+                </div>
+              </form>
+              
+              <!-- Delete form button -->
+              <form id="delete-form-{{ product.id }}" style="display: inline-block" onsubmit="return confirmDelete('{{ product.title }}', '{{ product.id }}');">
+                {% csrf_token %}
+                <button type="submit" class="delete">Delete</button>
+              </form>
+            </div>
+          </li>
+          {% empty %}
+          <li>No products found.</li>     
           </div>
         </li>
         {% endfor %}
