@@ -318,6 +318,16 @@ class ProductHistoryView(ListView):
 
         elif self.request.user.role == 'end_user':
             queryset = Product.objects.all().filter(created_by=self.request.user)
+             # Filter by status if query parameter is provided
+        show_rejected = self.request.GET.get('show_rejected')
+        show_approved = self.request.GET.get('show_approved')
+
+        if show_rejected:
+            queryset = queryset.filter(status='rejected')
+        elif show_approved:
+            queryset = queryset.filter(status='approved')
+
+        return queryset
 
         return queryset
 
